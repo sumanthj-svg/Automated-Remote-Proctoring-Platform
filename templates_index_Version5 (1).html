@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Remote Proctoring Platform</title>
+  <style>
+    video, img { border: 2px solid #555; }
+    #anomaly-list { color: red; }
+  </style>
+  <script>
+    function fetchAnomalies() {
+      fetch('/anomalies')
+        .then(r => r.json())
+        .then(data => {
+          const el = document.getElementById('anomaly-list');
+          el.innerHTML = data.anomalies.map(a => `<li>${a}</li>`).join('');
+        });
+    }
+    setInterval(fetchAnomalies, 2000);
+
+    function verifyFace() {
+      fetch('/verify', {method: 'POST'})
+        .then(r => r.json())
+        .then(data => alert(data.message));
+    }
+
+    // Tab switch detection (blur/focus events)
+    let tabSwitches = 0;
+    window.onblur = function() {
+      fetch('/tab_switch', {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+          tabSwitches = data.count;
+        });
+    };
+  </script>
+</head>
+<body>
+  <h2>Remote Proctoring Video Feed</h2>
+  <button onclick="verifyFace()">Start Face Verification</button>
+  <img src="{{ url_for('video_feed') }}" width="640" height="480">
+  <h3>Recent Anomalies</h3>
+  <ul id="anomaly-list"></ul>
+</body>
+</html>
